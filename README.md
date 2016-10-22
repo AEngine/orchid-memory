@@ -1,6 +1,6 @@
-Orchid Memcache
+Orchid Memory
 ====
-Work with Key-Value store for user-friendly interface means.
+Work with Key-Value storage by user-friendly interface.
 
 #### Requirements
 * Orchid Framework
