@@ -9,4 +9,4 @@ Work with Key-Value store for user-friendly interface means.
 #### Installation
 Run the following command in the root directory of your web project:
   
-> `composer require aengine/orchid-memcache`
+> `composer require aengine/orchid-memory`
