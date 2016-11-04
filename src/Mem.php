@@ -71,7 +71,7 @@ class Mem
                 switch (strtolower($config['driver'])) {
                     case 'memcache':
                         static::$connection[$config['role'] == 'master' ? 'master' : 'slave'][] = function () use ($config) {
-                            return new AEngine\Memory\Driver\Memcache(
+                            return new AEngine\Orchid\Memory\Driver\Memcache(
                                 $config['host'],
                                 $config['port'],
                                 $config['timeout']
