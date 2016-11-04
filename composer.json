@@ -24,7 +24,7 @@
   },
   "autoload": {
     "psr-4": {
-      "AEngine\\Memory\\": "src/"
+      "AEngine\\Orchid\\Memory\\": "src/"
     },
     "files": ["src/Mem.php"]
   }

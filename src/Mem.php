@@ -1,7 +1,7 @@
 <?php
 
-use AEngine\Memory\Exception\CacheException;
-use AEngine\Memory\Interfaces\DriverInterface;
+use AEngine\Orchid\Memory\Exception\CacheException;
+use AEngine\Orchid\Memory\Interfaces\DriverInterface;
 
 /**
  * Mem is user-friendly wrap around storage

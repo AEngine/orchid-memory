@@ -1,9 +1,9 @@
 <?php
 
-namespace AEngine\Memory\Driver;
+namespace AEngine\Orchid\Memory\Driver;
 
-use AEngine\Memory\Exception\CacheException;
-use AEngine\Memory\Interfaces\DriverInterface;
+use AEngine\Orchid\Memory\Exception\CacheException;
+use AEngine\Orchid\Memory\Interfaces\DriverInterface;
 use Memcached;
 
 class Memcache implements DriverInterface

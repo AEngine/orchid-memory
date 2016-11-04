@@ -8,7 +8,7 @@ const ROOT = __DIR__ . '/../src/';
  */
 spl_autoload_register(function ($class) {
     $class_path = ROOT . str_replace(['\\', '_'], '/', $class) . '.php';
-    $class_path = str_replace('AEngine/Memory/', '', $class_path);
+    $class_path = str_replace('AEngine/Orchid/Memory/', '', $class_path);
 
     if (file_exists($class_path)) {
         require_once($class_path);

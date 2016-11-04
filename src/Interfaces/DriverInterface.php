@@ -1,6 +1,6 @@
 <?php
 
-namespace AEngine\Memory\Interfaces;
+namespace AEngine\Orchid\Memory\Interfaces;
 
 interface DriverInterface
 {
