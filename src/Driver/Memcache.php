@@ -98,7 +98,7 @@ class Memcache implements DriverInterface
         $data = [];
 
         if (($keys = $this->get($tag)) !== false) {
-            $this->connection->getMulti($keys);
+            $data = $this->connection->getMulti($keys);
         }
 
         return $data;
@@ -116,7 +116,9 @@ class Memcache implements DriverInterface
         if (($keys = $this->get($tag)) !== false) {
             $keys[] = $tag;
 
-            return $this->connection->deleteMulti($keys);
+            $this->connection->deleteMulti($keys);
+
+            return $this->connection->getResultCode() == Memcached::RES_SUCCESS;
         }
 
         return false;
