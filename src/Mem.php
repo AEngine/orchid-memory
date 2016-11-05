@@ -70,7 +70,8 @@ class Mem
 
                 switch (strtolower($config['driver'])) {
                     case 'memcache':
-                        static::$connection[$config['role'] == 'master' ? 'master' : 'slave'][] = function () use ($config) {
+                        $role = $config['role'] == 'master' ? 'master' : 'slave';
+                        static::$connection[$role][] = function () use ($config) {
                             return new AEngine\Orchid\Memory\Driver\Memcache(
                                 $config['host'],
                                 $config['port'],
