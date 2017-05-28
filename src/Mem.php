@@ -70,7 +70,7 @@ class Mem
 
                 switch (strtolower($config['driver'])) {
                     case 'memcache':
-                        $role = $config['role'] == 'master' ? 'master' : 'slave';
+                        $role                        = $config['role'] == 'master' ? 'master' : 'slave';
                         static::$connection[$role][] = function () use ($config) {
                             return new AEngine\Orchid\Memory\Driver\Memcache(
                                 $config['host'],
@@ -89,7 +89,7 @@ class Mem
     }
 
     /**
-     * Opens and returns a connection to external storage
+     * Open and return a connection to external storage
      *
      * @param bool $useMaster
      *
@@ -139,55 +139,56 @@ class Mem
     }
 
     /**
-     * Return value from external storage
+     * Return value from external storage and returns
      *
-     * @param string  $key
-     * @param Closure $payload
+     * @param string $key
+     * @param mixed $default
      *
      * @return mixed
      */
-    public static function get($key, Closure $payload = null)
+    public static function get($key, $default = null)
     {
         if (!static::$disabled) {
-            if (isset(static::$buffer[$key])) {
+            if (in_array($key, static::$buffer)) {
                 $value = static::$buffer[$key];
             } else {
                 $value = static::getInstance(false)->get(static::getKey($key));
 
                 foreach (static::$cachedKeys as $k) {
-                    if (strpos($key, $k) === 0) {
+                    if ($key == $k) {
                         static::$buffer[$key] = $value;
                     }
                 }
             }
 
-            return $value !== false ? $value : ($payload ? call_user_func($payload) : false);
+            return $value !== false ? $value : (is_callable($default) ? call_user_func($default) : $default);
         }
 
-        return $payload;
+        return (is_callable($default) ? call_user_func($default) : $default);
     }
 
     /**
-     * Writes a value to external storage
+     * Writes a value to an external storage key
      *
      * @param string $key
-     * @param mixed  $value
-     * @param int    $expire
+     * @param mixed $value
+     * @param null|int $ttl
      * @param string $tag
      *
      * @return bool
+     *
      */
-    public static function set($key, $value, $expire = 0, $tag = null)
+    public static function set($key, $value, $ttl = null, $tag = null)
     {
         if (isset(static::$cachedKeys[$key])) {
             unset(static::$buffer[$key]);
         }
 
-        return static::getInstance(true)->set(static::getKey($key), $value, $expire, $tag);
+        return static::getInstance(true)->set(static::getKey($key), $value, $ttl, $tag);
     }
 
     /**
-     * Removes specified key from external storage
+     * Removes specified key from the external storage
      *
      * @param string $key
      *
@@ -203,15 +204,104 @@ class Mem
     }
 
     /**
-     * Remove all keys from external storage
+     * Remove all keys from an external storage
      *
      * @return bool
      */
-    public static function flush()
+    public static function clear()
     {
         static::$buffer = [];
 
-        return static::getInstance(true)->flush();
+        return static::getInstance(true)->clear();
+    }
+
+    /**
+     * Obtains multiple cache items by their unique keys.
+     *
+     * @param array $keys
+     * @param mixed $default
+     *
+     * @return array
+     */
+    public static function getMultiple($keys, $default = null)
+    {
+        if (!static::$disabled) {
+            $_keys = [];
+            $values = [];
+
+            foreach ($keys as $index => $key) {
+                if (isset(static::$buffer[$key])) {
+                    $values[$key] = static::$buffer[$key];
+                } else {
+                    $_keys[$index] = static::getKey($key);
+                }
+            }
+
+            $values = array_combine($keys, array_values(array_merge($values, static::getInstance(false)->getMultiple($_keys))));
+
+            foreach ($values as $key => $value) {
+                if (in_array($key, static::$cachedKeys) && !isset(static::$buffer[$key])) {
+                    static::$buffer[$key] = $value;
+                }
+            }
+
+            return !empty($values) ? $values : (is_callable($default) ? call_user_func($default) : $default);
+        }
+
+        return (is_callable($default) ? call_user_func($default) : $default);
+    }
+
+    /**
+     * Persists a set of key => value pairs in the cache, with an optional TTL.
+     *
+     * @param array $values
+     * @param null|int $ttl
+     * @param null|string $tag
+     *
+     * @return bool
+     */
+    public static function setMultiple($values, $ttl = null, $tag = null)
+    {
+        $keys = [];
+        foreach (array_keys($values) as $key) {
+            if (isset(static::$cachedKeys[$key])) {
+                unset(static::$buffer[$key]);
+            }
+
+            $keys[] = static::getKey($key);
+        }
+
+        return static::getInstance(true)->setMultiple(array_combine($keys, array_values($values)), $ttl, $tag);
+    }
+
+    /**
+     * Deletes multiple cache items in a single operation.
+     *
+     * @param array $keys
+     *
+     * @return bool
+     */
+    public static function deleteMultiple($keys)
+    {
+        foreach ($keys as $key) {
+            if (isset(static::$cachedKeys[$key])) {
+                unset(static::$buffer[$key]);
+            }
+        }
+
+        return static::getInstance(true)->deleteMultiple($keys);
+    }
+
+    /**
+     * Determines whether an item is present in the cache.
+     *
+     * @param string $key
+     *
+     * @return bool
+     */
+    public static function has($key)
+    {
+        return static::getInstance(true)->has($key);
     }
 
     /**
