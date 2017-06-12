@@ -4,9 +4,8 @@ namespace AEngine\Orchid\Memory\Driver;
 
 use AEngine\Orchid\Memory\Exception\CacheException;
 use AEngine\Orchid\Memory\Interfaces\DriverInterface;
-use Memcached;
 
-class Memcache implements DriverInterface
+class Redis implements DriverInterface
 {
 	protected $connection = null;
 
@@ -22,15 +21,15 @@ class Memcache implements DriverInterface
 	 */
 	public function __construct($host, $port, $timeout, $options)
 	{
-		$this->connection = new Memcached;
-		$this->connection->addServer($host, $port);
-		$this->connection->setOption(Memcached::OPT_CONNECT_TIMEOUT, $timeout * 1000);
+		$this->connection = new \Redis;
+		$this->connection->connect($host, $port, $timeout);
+		$this->connection->setOption(\Redis::OPT_SERIALIZER, \Redis::SERIALIZER_PHP);
 
 		foreach ($options as $key => $value) {
 			$this->connection->setOption($key, $value);
 		}
 
-		if (!$this->connection->getVersion()) {
+		if ($this->connection->ping() !== '+PONG') {
 			throw new CacheException('Connecting to a cache server was unable');
 		}
 	}
@@ -66,7 +65,12 @@ class Memcache implements DriverInterface
 			$this->set($tag, array_unique($tags), $ttl);
 		}
 
-		return $this->connection->set($key, $value, $ttl);
+		$result = $this->connection->set($key, $value);
+		if ($result && $ttl) {
+			$this->connection->setTimeout($key, $ttl);
+		}
+
+		return $result;
 	}
 
 	/**
@@ -78,7 +82,7 @@ class Memcache implements DriverInterface
 	 */
 	public function delete($key): bool
 	{
-		return $this->connection->delete($key);
+		return !!$this->connection->delete($key);
 	}
 
 	/**
@@ -88,7 +92,7 @@ class Memcache implements DriverInterface
 	 */
 	public function clear(): bool
 	{
-		return $this->connection->flush();
+		return !!$this->connection->flushDB();
 	}
 
 	/**
@@ -100,18 +104,17 @@ class Memcache implements DriverInterface
 	 */
 	public function getMultiple($keys): array
 	{
-		return $this->connection->getMulti($keys);
+		return $this->connection->mget($keys);
 	}
 
 	/**
 	 * Persists a set of key => value pairs in the cache, with an optional TTL.
 	 *
 	 * @param array $values
-	 * @param null|int|DateInterval
+	 * @param null|int $ttl
 	 * @param null|string $tag
 	 *
 	 * @return bool
-	 *
 	 */
 	public function setMultiple($values, $ttl = null, $tag = null): bool
 	{
@@ -121,7 +124,14 @@ class Memcache implements DriverInterface
 			$this->set($tag, array_unique($tags), $ttl);
 		}
 
-		return $this->connection->setMulti($values, $ttl);
+		$result = $this->connection->mset($values);
+		if ($result && $ttl) {
+			foreach ($values as $key => $value) {
+				$this->connection->setTimeout($key, $ttl);
+			}
+		}
+
+		return $result;
 	}
 
 	/**
@@ -133,7 +143,7 @@ class Memcache implements DriverInterface
 	 */
 	public function deleteMultiple($keys): bool
 	{
-		return $this->connection->deleteMulti($keys);
+		return !!$this->connection->delete($keys);
 	}
 
 	/**
@@ -145,9 +155,7 @@ class Memcache implements DriverInterface
 	 */
 	public function has($key): bool
 	{
-		$this->connection->get($key);
-
-		return $this->connection->getResultCode() == Memcached::RES_SUCCESS;
+		return $this->connection->exists($key);
 	}
 
 	/**
@@ -162,7 +170,7 @@ class Memcache implements DriverInterface
 		$data = [];
 
 		if (($keys = $this->get($tag)) !== false) {
-			$data = $this->connection->getMulti($keys);
+			$data = $this->connection->mget($keys);
 		}
 
 		return $data;
@@ -180,9 +188,7 @@ class Memcache implements DriverInterface
 		if (($keys = $this->get($tag)) !== false) {
 			$keys[] = $tag;
 
-			$this->connection->deleteMulti($keys);
-
-			return $this->connection->getResultCode() == Memcached::RES_SUCCESS;
+			return !!$this->connection->delete($keys);
 		}
 
 		return false;

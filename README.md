@@ -8,7 +8,7 @@ Work with Key-Value storage by user-friendly interface.
 
 #### Supporting
 * Memcache
-* Redis (coming soon)
+* Redis
 
 #### Installation
 Run the following command in the root directory of your web project:
