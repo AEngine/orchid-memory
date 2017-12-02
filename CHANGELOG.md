@@ -3,7 +3,10 @@
 The latest version of this file can be found at the master branch of the
 Orchid-Memory repository.
 
-## 1.2.0 (2017-06-12)
+## 1.2.1 (2017-12-02)
+- Update dependency
+
+### 1.2.0 (2017-06-12)
 - Add support Redis
 - Some fixes
 
