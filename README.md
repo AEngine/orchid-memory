@@ -3,7 +3,6 @@ Orchid Memory
 Work with Key-Value storage by user-friendly interface.
 
 #### Requirements
-* Orchid Framework
 * PHP >= 7.0
 
 #### Supporting
