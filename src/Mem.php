@@ -52,7 +52,6 @@ class Mem
 	 * @param array $configs
 	 *
 	 * @throws RuntimeException
-	 * @throws CacheException
 	 */
 	public static function setup(array $configs = [])
 	{
