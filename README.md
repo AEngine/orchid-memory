@@ -81,3 +81,9 @@ $animal = Mem::getByTag('animal');
 // remove data
 Mem::deleteByTag('animal');
 ```
+
+#### Contributing
+Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
+
+#### License
+The Orchid Memory is licensed under the MIT license. See [License File](LICENSE.md) for more information.
